@@ -39,7 +39,7 @@ This project uses a **Hybrid Free-Tier Architecture**:
     *   `DATABASE_URL`: Your Supabase connection string.
     *   `TELEGRAM_BOT_TOKEN`: Your Telegram Bot Token.
     *   `ADMIN_TOKEN`: A secure secret string (for frontend login).
-    *   `CRON_SECRET`: A secure secret string (for cron jobs).
+    *   `CRON_SECRET`: "MySuperSecretCronPassword123" (or any random string). This allows cron-job.org to trigger alerts without full admin access.
     *   `TELEGRAM_POLLING`: `false`
 7.  **Deploy**.
 
