@@ -70,6 +70,7 @@ app.use('/api/history', authMiddleware, historyRouter);
 // Telegram Webhook
 app.post('/api/telegram/webhook', (req, res) => {
     try {
+        console.log('[Webhook] Received update:', JSON.stringify(req.body));
         processUpdate(req.body);
         res.sendStatus(200);
     } catch (error) {
