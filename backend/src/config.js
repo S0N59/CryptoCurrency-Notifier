@@ -16,6 +16,7 @@ const config = {
 
   // Admin Authentication
   adminToken: process.env.ADMIN_TOKEN || 'default-admin-token',
+  cronSecret: process.env.CRON_SECRET,
 
   // Polling Configuration
   pollInterval: parseInt(process.env.POLL_INTERVAL || '60', 10) * 1000, // Convert to ms

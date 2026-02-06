@@ -80,18 +80,37 @@ app.post('/api/telegram/webhook', (req, res) => {
 
 // Cron endpoint for Vercel
 app.get('/api/cron/check-alerts', async (req, res) => {
-    // Basic security: check for Admin Token or Cron Secret
+    // Advanced security: check for Admin Token OR Cron Secret
+    // Support Header (Authorization, x-cron-secret) or Query Param (secret)
     const authHeader = req.headers.authorization;
-    if (authHeader !== `Bearer ${config.adminToken}`) {
+    const cronHeader = req.headers['x-cron-secret'];
+    const querySecret = req.query.secret;
+
+    const authorized = 
+        (authHeader === `Bearer ${config.adminToken}`) ||
+        (config.cronSecret && cronHeader === config.cronSecret) ||
+        (config.cronSecret && querySecret === config.cronSecret);
+
+    if (!authorized) {
         return res.status(401).json({ error: 'Unauthorized' });
     }
     
+    // Set a timeout for the cron execution (e.g., 55 seconds for Vercel Pro, but 9s for Hobby)
+    // We'll use 9000ms to be safe on free tier
+    const TIMEOUT_MS = 9000;
+    
     try {
-        const results = await checkPricesAndTriggerAlerts();
+        const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Operation timed out')), TIMEOUT_MS)
+        );
+
+        const checkPromise = checkPricesAndTriggerAlerts();
+        
+        const results = await Promise.race([checkPromise, timeoutPromise]);
         res.json(results);
     } catch (error) {
         console.error('Cron error:', error);
-        res.status(500).json({ error: error.message });
+        res.status(error.message === 'Operation timed out' ? 504 : 500).json({ error: error.message });
     }
 });
 

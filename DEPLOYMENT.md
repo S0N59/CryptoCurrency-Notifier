@@ -38,7 +38,8 @@ This project uses a **Hybrid Free-Tier Architecture**:
 6.  **Environment Variables**:
     *   `DATABASE_URL`: Your Supabase connection string.
     *   `TELEGRAM_BOT_TOKEN`: Your Telegram Bot Token.
-    *   `ADMIN_TOKEN`: A secure secret string (generate a random UUID or long password). You will need this for the frontend login and the cron job.
+    *   `ADMIN_TOKEN`: A secure secret string (for frontend login).
+    *   `CRON_SECRET`: A secure secret string (for cron jobs).
     *   `TELEGRAM_POLLING`: `false`
 7.  **Deploy**.
 
@@ -98,13 +99,12 @@ Since Vercel's free tier limits cron jobs to once per day, we use **cron-job.org
 1.  Register at [cron-job.org](https://cron-job.org/en/).
 2.  **Create Cronjob**:
     *   **Title**: Crypto Price Check
-    *   **URL**: `https://your-backend-project.vercel.app/api/cron/check-alerts`
+    *   **URL**: `https://your-project.vercel.app/api/cron/check-alerts?secret=YOUR_CRON_SECRET`
+        *   Replace `YOUR_CRON_SECRET` with the value you set in Vercel Environment Variables.
     *   **Execution schedule**: Every 5 minutes.
-3.  **Advanced / Headers**:
-    *   You **MUST** add an authorization header so the backend allows the request.
-    *   **Key**: `Authorization`
-    *   **Value**: `Bearer YOUR_ADMIN_TOKEN` (The same token you set in Vercel env vars).
-4.  **Create**.
+    *   **Request method**: GET.
+    *   *(Optional)* **Advanced**: You can also use Header `x-cron-secret` instead of the URL parameter if you prefer.
+3.  **Create**.
 
 ---
 
