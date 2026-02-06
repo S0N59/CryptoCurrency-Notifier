@@ -65,6 +65,19 @@ export function initializeTelegramBot() {
     }
 }
 
+/**
+ * Handle incoming webhook update manually
+ * Used by Vercel serverless function
+ */
+export function processUpdate(update) {
+    if (!bot) {
+        initializeTelegramBot();
+    }
+    if (bot) {
+        bot.processUpdate(update);
+    }
+}
+
 async function ensureUserRegistered(userId, username) {
     const existing = await userQueries.getById.get(String(userId));
     if (!existing) {
