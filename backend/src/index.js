@@ -20,6 +20,12 @@ import historyRouter from './routes/history.js';
 
 const app = express();
 
+// Request logging middleware for debugging
+app.use((req, res, next) => {
+    console.log(`[Request] ${req.method} ${req.url} (Path: ${req.path})`);
+    next();
+});
+
 // Middleware
 app.use(cors({
     origin: [
@@ -196,7 +202,16 @@ app.use(express.static(frontendPath));
 app.get('*', (req, res) => {
     // Skip API calls that weren't matched above
     if (req.path.startsWith('/api')) {
-        return res.status(404).json({ error: 'API endpoint not found' });
+        return res.status(404).json({ 
+            error: 'API endpoint not found',
+            debug: {
+                url: req.url,
+                path: req.path,
+                method: req.method,
+                baseUrl: req.baseUrl,
+                originalUrl: req.originalUrl
+            }
+        });
     }
     res.sendFile(join(frontendPath, 'index.html'));
 });
