@@ -65,6 +65,21 @@ app.get('/api/health', (req, res) => {
     });
 });
 
+// Simple auth debug (public but obscured)
+app.get('/api/auth-debug', (req, res) => {
+    const authHeader = req.headers.authorization;
+    const token = authHeader ? authHeader.split(' ')[1] : null;
+    
+    res.json({
+        hasAuthHeader: !!authHeader,
+        tokenPrefix: token ? token.substring(0, 4) + '...' : 'none',
+        expectedPrefix: config.adminToken ? config.adminToken.substring(0, 4) + '...' : 'none',
+        tokenMatch: token === config.adminToken,
+        envAdminTokenSet: !!process.env.ADMIN_TOKEN,
+        envBotTokenSet: !!process.env.TELEGRAM_BOT_TOKEN
+    });
+});
+
 // Database connection test (protected by admin token)
 app.get('/api/test-db', async (req, res) => {
     const authHeader = req.headers.authorization;

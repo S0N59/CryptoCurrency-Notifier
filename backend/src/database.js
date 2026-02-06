@@ -38,8 +38,21 @@ async function query(text, params) {
 
 // Initialize database schema
 async function initializeDatabase() {
-    const client = await pool.connect();
+    if (!config.databaseUrl) {
+        console.warn('Skipping DB initialization: DATABASE_URL not set');
+        return;
+    }
+
+    console.log('Connecting to database for initialization...');
+    
+    // Add a 5-second timeout to the connection attempt
+    const connectionTimeout = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Database connection timeout during initialization')), 5000)
+    );
+
+    let client;
     try {
+        client = await Promise.race([pool.connect(), connectionTimeout]);
         await client.query('BEGIN');
 
         // Alerts table
