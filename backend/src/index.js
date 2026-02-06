@@ -194,26 +194,28 @@ app.get('/api/cron/check-alerts', async (req, res) => {
     }
 });
 
-// Serve static frontend files
-const frontendPath = join(__dirname, '..', '..', 'frontend', 'dist');
-app.use(express.static(frontendPath));
+// Default root handler
+app.get('/', (req, res) => {
+    res.json({
+        message: 'Crypto Alerts API is running',
+        frontend: config.webAppUrl,
+        endpoints: {
+            health: '/api/health',
+            webhook: '/api/telegram/webhook'
+        }
+    });
+});
 
-// Handle SPA routing - send all non-API requests to index.html
-app.get('*', (req, res) => {
-    // Skip API calls that weren't matched above
-    if (req.path.startsWith('/api')) {
-        return res.status(404).json({ 
-            error: 'API endpoint not found',
-            debug: {
-                url: req.url,
-                path: req.path,
-                method: req.method,
-                baseUrl: req.baseUrl,
-                originalUrl: req.originalUrl
-            }
-        });
-    }
-    res.sendFile(join(frontendPath, 'index.html'));
+// Handle 404 for all other routes
+app.use((req, res) => {
+    res.status(404).json({ 
+        error: 'API endpoint not found',
+        debug: {
+            url: req.url,
+            path: req.path,
+            method: req.method
+        }
+    });
 });
 
 // Error handler

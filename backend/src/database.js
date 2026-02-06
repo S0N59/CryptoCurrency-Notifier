@@ -128,11 +128,11 @@ async function initializeDatabase() {
         await client.query('COMMIT');
         console.log('Database initialized successfully (PostgreSQL)');
     } catch (e) {
-        await client.query('ROLLBACK');
+        if (client) await client.query('ROLLBACK');
         console.error('Failed to initialize database:', e);
         throw e;
     } finally {
-        client.release();
+        if (client) client.release();
     }
 }
 
