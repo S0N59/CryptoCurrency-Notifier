@@ -1,0 +1,25 @@
+{
+    "name": "crypto-alerts-frontend",
+    "private": true,
+    "version": "1.0.0",
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "preview": "vite preview",
+        "firebase": "firebase",
+        "tunnel": "lt --port 3001"
+    },
+    "dependencies": {
+        "react": "^18.3.1",
+        "react-dom": "^18.3.1"
+    },
+    "devDependencies": {
+        "@types/react": "^18.3.3",
+        "@types/react-dom": "^18.3.0",
+        "@vitejs/plugin-react": "^4.3.1",
+        "firebase-tools": "^15.5.1",
+        "localtunnel": "^2.0.2",
+        "vite": "^5.4.2"
+    }
+}
