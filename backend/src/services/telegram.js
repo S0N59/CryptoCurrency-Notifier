@@ -36,6 +36,10 @@ function getEmoji(symbol) {
  * Initialize Telegram bot
  */
 export function initializeTelegramBot() {
+    if (bot) {
+        return bot;
+    }
+
     if (!config.telegramBotToken) {
         console.warn('[Telegram] Bot token not configured.');
         return null;

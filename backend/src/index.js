@@ -275,14 +275,8 @@ async function start() {
 // Start server only if running directly
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
     start();
-} else {
-    // Export for Vercel
-    // We need to initialize DB and Bot when imported as a module (e.g. by Vercel)
-    // However, Vercel creates a new instance per request (or reuses warm ones).
-    // We should do lazy initialization or top-level initialization.
-    // For simplicity, we trigger initialization asynchronously.
-    initializeDatabase().catch(e => console.error('DB Init Error:', e));
-    initializeTelegramBot();
-}
+} 
+// Note: When imported by Vercel (via api/index.js), we don't start the server
+// and we don't run top-level initialization. We rely on ensureInitialized middleware.
 
 export default app;

@@ -12,7 +12,7 @@ const config = {
   // Telegram Configuration
   telegramBotToken: process.env.TELEGRAM_BOT_TOKEN || '',
   webAppUrl: process.env.WEB_APP_URL || 'https://example.com',
-  telegramPolling: process.env.VERCEL ? false : (process.env.TELEGRAM_POLLING !== 'false'),
+  telegramPolling: (process.env.VERCEL || process.env.VERCEL_ENV || process.env.NOW_REGION) ? false : (process.env.TELEGRAM_POLLING !== 'false'),
 
   // Admin Authentication
   adminToken: process.env.ADMIN_TOKEN || process.env.TELEGRAM_BOT_TOKEN || 'default-admin-token',
