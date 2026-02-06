@@ -4,12 +4,23 @@ import config from './config.js';
 const { Pool } = pg;
 
 // Use connection pool
-const pool = new Pool({
-    connectionString: config.databaseUrl,
-    ssl: {
-        rejectUnauthorized: false // Required for Supabase/Neon in some envs
-    }
-});
+let pool;
+
+if (config.databaseUrl) {
+    pool = new Pool({
+        connectionString: config.databaseUrl,
+        ssl: {
+            rejectUnauthorized: false // Required for Supabase/Neon in some envs
+        }
+    });
+} else {
+    console.error('DATABASE_URL is not set. Database features will fail.');
+    // Mock pool that throws error
+    pool = {
+        query: async () => { throw new Error('DATABASE_URL is not configured'); },
+        connect: async () => { throw new Error('DATABASE_URL is not configured'); }
+    };
+}
 
 // Helper for single query execution
 async function query(text, params) {
