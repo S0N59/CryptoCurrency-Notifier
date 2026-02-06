@@ -19,12 +19,34 @@ This project uses a **Hybrid Free-Tier Architecture**:
 
 ## 1. Database Setup (Supabase)
 
-1.  Create a new project on [Supabase](https://supabase.com).
-2.  Go to **Project Settings** (cog icon at bottom left) -> **Database**.
-3.  Scroll down to the **Connection parameters** section.
-4.  Copy the **URI** (it starts with `postgresql://`).
-    *   *Tip*: You can also click the green **Connect** button in the top header to see different connection options.
-    *   **Password**: You will need the database password you created when setting up the project. If you forgot it, you can reset it in **Project Settings** -> **Database**.
+**Create a Fresh Database (Recommended for Serverless)**
+
+1.  **Create Project**:
+    *   Go to [Supabase Dashboard](https://supabase.com/dashboard).
+    *   Click **"New Project"**.
+    *   Choose an organization and name it (e.g., `CryptoNotifier`).
+    *   **Generate a Password** and **COPY IT** to a safe place immediately. You cannot see it again.
+    *   Select a Region close to you (e.g., Frankfurt or London).
+    *   Click **"Create new project"**.
+
+2.  **Get Connection String (Transaction Mode)**:
+    *   Wait for the project to finish "Setting up..." (takes ~2 minutes).
+    *   Go to **Project Settings** (cog icon) -> **Database**.
+    *   Look for **Connection Pooling** configuration.
+    *   **Important**: Uncheck "Use Supavisor" if you have issues, OR preferably:
+    *   Copy the **URI** but verify the port.
+    *   **Ideally, use the Transaction Pooler**:
+        *   Host: `aws-0-[region].pooler.supabase.com` (Example)
+        *   Port: `6543`
+        *   Mode: `Transaction`
+    *   **Or use the Direct Connection (Session Mode)**:
+        *   Host: `db.[project-ref].supabase.co`
+        *   Port: `5432`
+    
+    *   Construct your URL: `postgresql://postgres.[ref]:[PASSWORD]@[host]:[port]/postgres`
+
+3.  **Disable Pause (Optional but Recommended)**:
+    *   Free projects pause after inactivity. If possible, upgrade to Pro, or remember to wake it up weekly by visiting the dashboard.
 
 ---
 
