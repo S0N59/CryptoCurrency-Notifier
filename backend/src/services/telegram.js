@@ -137,13 +137,7 @@ async function showMainMenu(msg, editMessage = false) {
     }
 }
 
-/**
- * Process a webhook update
- */
-export function processUpdate(body) {
-    if (!bot) return;
-    bot.processUpdate(body);
-}
+
 
 /**
  * Handle /start
