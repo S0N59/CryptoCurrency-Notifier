@@ -64,6 +64,30 @@ app.get('/health', (req, res) => {
 // Apply initialization middleware to all API routes
 app.use('/api', ensureInitialized);
 
+// Database connection test (protected by admin token)
+app.get('/api/test-db', async (req, res) => {
+    const authHeader = req.headers.authorization;
+    if (authHeader !== `Bearer ${config.adminToken}`) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    try {
+        const { pool } = await import('./database.js');
+        const result = await pool.query('SELECT NOW() as time, current_database() as db');
+        res.json({
+            success: true,
+            message: 'Database connection successful',
+            data: result.rows[0]
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Database connection failed',
+            error: error.message
+        });
+    }
+});
+
 // Get supported symbols (public)
 app.get('/api/symbols', (req, res) => {
     res.json(getSupportedSymbols());
