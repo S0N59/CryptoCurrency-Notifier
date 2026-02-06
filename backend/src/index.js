@@ -32,13 +32,37 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// Lazy initialization for Serverless
+let isInitialized = false;
+async function ensureInitialized(req, res, next) {
+    if (!isInitialized) {
+        try {
+            console.log('[Init] Starting lazy initialization...');
+            await initializeDatabase();
+            initializeTelegramBot();
+            isInitialized = true;
+            console.log('[Init] Lazy initialization complete.');
+        } catch (error) {
+            console.error('[Init] Initialization failed:', error);
+            // We continue as some routes might work without DB, 
+            // but we don't set isInitialized to true so we try again next time
+        }
+    }
+    next();
+}
+
 // Health check (public)
 app.get('/health', (req, res) => {
     res.json({
         status: 'ok',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        env: process.env.VERCEL ? 'vercel' : 'local',
+        initialized: isInitialized
     });
 });
+
+// Apply initialization middleware to all API routes
+app.use('/api', ensureInitialized);
 
 // Get supported symbols (public)
 app.get('/api/symbols', (req, res) => {

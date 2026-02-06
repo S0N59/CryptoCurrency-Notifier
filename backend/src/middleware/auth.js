@@ -58,7 +58,7 @@ function verifyTelegramWebAppData(telegramInitData) {
  * 1. Admin Token (Bearer <token>)
  * 2. Telegram Web App Init Data (Bearer <initData>)
  */
-export function authMiddleware(req, res, next) {
+export async function authMiddleware(req, res, next) {
     const authHeader = req.headers.authorization;
 
     if (!authHeader) {
@@ -99,9 +99,9 @@ export function authMiddleware(req, res, next) {
 
             // Ensure user is registered in our database
             try {
-                const existing = userQueries.getById.get(String(telegramUser.id));
+                const existing = await userQueries.getById.get(String(telegramUser.id));
                 if (!existing) {
-                    userQueries.create.run({
+                    await userQueries.create.run({
                         telegram_id: String(telegramUser.id),
                         username: telegramUser.username || null
                     });
