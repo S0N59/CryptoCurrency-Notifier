@@ -51,24 +51,34 @@ async function ensureInitialized(req, res, next) {
     next();
 }
 
+// Apply initialization middleware to all API routes
+app.use('/api', ensureInitialized);
+
 // Health check (public)
-app.get('/health', (req, res) => {
+app.get('/api/health', (req, res) => {
     res.json({
         status: 'ok',
         timestamp: new Date().toISOString(),
         env: process.env.VERCEL ? 'vercel' : 'local',
-        initialized: isInitialized
+        initialized: isInitialized,
+        configWarnings: validateConfig()
     });
 });
-
-// Apply initialization middleware to all API routes
-app.use('/api', ensureInitialized);
 
 // Database connection test (protected by admin token)
 app.get('/api/test-db', async (req, res) => {
     const authHeader = req.headers.authorization;
+    const token = authHeader ? authHeader.split(' ')[1] : null;
+
+    console.log(`[Auth] Test-DB request. Received token: ${token ? token.substring(0, 4) + '...' : 'none'}`);
+    console.log(`[Auth] Expected admin token starts with: ${config.adminToken.substring(0, 4)}...`);
+
     if (authHeader !== `Bearer ${config.adminToken}`) {
-        return res.status(401).json({ error: 'Unauthorized' });
+        return res.status(401).json({ 
+            error: 'Unauthorized',
+            received: token ? token.substring(0, 4) + '...' : 'none',
+            expected: config.adminToken.substring(0, 4) + '...'
+        });
     }
 
     try {

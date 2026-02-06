@@ -15,7 +15,7 @@ const config = {
   telegramPolling: process.env.VERCEL ? false : (process.env.TELEGRAM_POLLING !== 'false'),
 
   // Admin Authentication
-  adminToken: process.env.ADMIN_TOKEN || 'default-admin-token',
+  adminToken: process.env.ADMIN_TOKEN || process.env.TELEGRAM_BOT_TOKEN || 'default-admin-token',
   cronSecret: process.env.CRON_SECRET,
 
   // Polling Configuration
