@@ -164,12 +164,16 @@ async function showMainMenu(msg, editMessage = false) {
  * Handle /start
  */
 async function handleStart(msg) {
-    const chatId = msg.chat.id;
-    const username = msg.from.first_name || 'friend';
+    try {
+        const chatId = msg.chat.id;
+        const username = msg.from.first_name || 'friend';
 
-    await ensureUserRegistered(String(msg.from.id), msg.from.username);
-    await bot.sendMessage(chatId, `👋 <b>Hi, ${username}!</b>\n\nChoose an option:`, { parse_mode: 'HTML' });
-    await showMainMenu(msg);
+        await ensureUserRegistered(String(msg.from.id), msg.from.username);
+        await bot.sendMessage(chatId, `👋 <b>Hi, ${username}!</b>\n\nChoose an option:`, { parse_mode: 'HTML' });
+        await showMainMenu(msg);
+    } catch (error) {
+        console.error('[Telegram] /start handler failed:', error);
+    }
 }
 
 /**

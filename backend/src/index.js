@@ -3,7 +3,7 @@ import cors from 'cors';
 import config, { validateConfig } from './config.js';
 import { initializeDatabase } from './database.js';
 import { authMiddleware } from './middleware/auth.js';
-import { initializeTelegramBot, processUpdate } from './services/telegram.js';
+import { getBot, initializeTelegramBot, processUpdate } from './services/telegram.js';
 import { checkPricesAndTriggerAlerts } from './services/alertEngine.js';
 import { cleanupPriceHistory, getSupportedSymbols } from './services/pricePoller.js';
 
@@ -66,6 +66,9 @@ async function ensureInitialized(req, res, next) {
 // Apply initialization middleware to all API routes
 app.use('/api', ensureInitialized);
 
+let lastTelegramUpdate = null;
+let lastTelegramUpdateAt = null;
+
 // Health check (public)
 app.get(['/api/health', '/health'], (req, res) => {
     res.json({
@@ -76,6 +79,63 @@ app.get(['/api/health', '/health'], (req, res) => {
         initialized: isInitialized,
         configWarnings: validateConfig()
     });
+});
+
+app.get('/api/telegram/status', async (req, res) => {
+    const expectedWebhookUrl = process.env.TELEGRAM_WEBHOOK_URL
+        || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}/api/telegram/webhook` : null);
+
+    const currentBot = getBot() || initializeTelegramBot();
+    if (!currentBot) {
+        res.json({
+            botInitialized: false,
+            envBotTokenSet: !!process.env.TELEGRAM_BOT_TOKEN,
+            expectedWebhookUrl,
+            lastTelegramUpdateAt,
+            lastTelegramUpdate
+        });
+        return;
+    }
+
+    const [meRes, webHookRes] = await Promise.allSettled([
+        currentBot.getMe(),
+        currentBot.getWebHookInfo()
+    ]);
+
+    res.json({
+        botInitialized: true,
+        expectedWebhookUrl,
+        bot: meRes.status === 'fulfilled' ? meRes.value : { error: meRes.reason?.message || String(meRes.reason) },
+        webhook: webHookRes.status === 'fulfilled' ? webHookRes.value : { error: webHookRes.reason?.message || String(webHookRes.reason) },
+        lastTelegramUpdateAt,
+        lastTelegramUpdate
+    });
+});
+
+app.post('/api/telegram/set-webhook', authMiddleware, async (req, res) => {
+    const desiredUrl = req.body?.url || req.query?.url;
+    const webhookUrl = desiredUrl
+        || process.env.TELEGRAM_WEBHOOK_URL
+        || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}/api/telegram/webhook` : null);
+
+    if (!webhookUrl) {
+        res.status(400).json({ error: 'Webhook URL not provided' });
+        return;
+    }
+
+    const currentBot = getBot() || initializeTelegramBot();
+    if (!currentBot) {
+        res.status(500).json({ error: 'Bot not initialized (missing TELEGRAM_BOT_TOKEN)' });
+        return;
+    }
+
+    try {
+        await currentBot.setWebHook(webhookUrl);
+        const info = await currentBot.getWebHookInfo();
+        res.json({ ok: true, webhookUrl, info });
+    } catch (error) {
+        res.status(500).json({ ok: false, error: error?.message || String(error), webhookUrl });
+    }
 });
 
 // Simple auth debug (public but obscured)
@@ -176,6 +236,20 @@ app.use('/api/history', authMiddleware, historyRouter);
 // Telegram Webhook
 app.post('/api/telegram/webhook', (req, res) => {
     try {
+        const update = req.body;
+        const message = update?.message || update?.edited_message || update?.channel_post;
+        const callbackQuery = update?.callback_query;
+        const chatId = callbackQuery?.message?.chat?.id || message?.chat?.id;
+        const text = callbackQuery?.data || message?.text;
+
+        lastTelegramUpdateAt = new Date().toISOString();
+        lastTelegramUpdate = {
+            update_id: update?.update_id,
+            kind: callbackQuery ? 'callback_query' : (message ? 'message' : 'unknown'),
+            chat_id: chatId,
+            text
+        };
+
         console.log('[Webhook] Received update:', JSON.stringify(req.body));
         processUpdate(req.body);
         res.sendStatus(200);
