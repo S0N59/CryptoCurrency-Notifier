@@ -1,21 +1,31 @@
 export default async function handler(req, res) {
     try {
         const pathParam = req.query?.path;
-        if (pathParam) {
-            const normalized = Array.isArray(pathParam) ? pathParam.join('/') : String(pathParam);
-            req.url = `/api/${normalized}`;
-        } else {
-            const originalUrl = req.headers['x-vercel-original-url']
-                || req.headers['x-original-url']
-                || req.headers['x-matched-path']
-                || req.headers['x-forwarded-uri']
-                || req.headers['x-rewrite-url'];
-            if (originalUrl) {
-                req.url = originalUrl;
-            }
-            if (!req.url.startsWith('/api')) {
-                req.url = `/api${req.url}`;
-            }
+        const normalizedPathParam = pathParam
+            ? (Array.isArray(pathParam) ? pathParam.join('/') : String(pathParam))
+            : null;
+
+        const rawUrl = typeof req.url === 'string' ? req.url : '';
+        const rawQueryPath = rawUrl.includes('path=')
+            ? new URL(`http://localhost${rawUrl}`).searchParams.get('path')
+            : null;
+
+        const originalUrlHeader = req.headers['x-vercel-original-url']
+            || req.headers['x-original-url']
+            || req.headers['x-matched-path']
+            || req.headers['x-forwarded-uri']
+            || req.headers['x-rewrite-url'];
+
+        const candidateUrl = normalizedPathParam
+            ? `/api/${normalizedPathParam}`
+            : (rawQueryPath ? `/api/${rawQueryPath}` : null)
+                || originalUrlHeader
+                || rawUrl;
+
+        if (candidateUrl) {
+            req.url = candidateUrl.startsWith('/api') || candidateUrl === '/'
+                ? candidateUrl
+                : `/api${candidateUrl}`;
         }
 
         const module = await import('../src/index.js');
