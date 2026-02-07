@@ -61,10 +61,11 @@ async function ensureInitialized(req, res, next) {
 app.use('/api', ensureInitialized);
 
 // Health check (public)
-app.get('/api/health', (req, res) => {
+app.get(['/api/health', '/health'], (req, res) => {
     res.json({
         status: 'ok',
-        timestamp: new Date().toISOString(),
+        version: '1.0.1', 
+        buildTimestamp: new Date().toISOString(),
         env: process.env.VERCEL ? 'vercel' : 'local',
         initialized: isInitialized,
         configWarnings: validateConfig()
