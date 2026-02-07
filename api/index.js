@@ -29,7 +29,7 @@ export default async function handler(req, res) {
         : (candidateUrl.startsWith('/api') ? candidateUrl : `/api${candidateUrl}`);
     }
 
-    const module = await import('../src/index.js');
+    const module = await import('../backend/src/index.js');
     const app = module.default;
     return app(req, res);
   } catch (error) {
