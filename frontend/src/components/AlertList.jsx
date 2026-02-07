@@ -5,6 +5,18 @@ export default function AlertList({ token, onEdit, refreshTrigger }) {
     const [alerts, setAlerts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const SYMBOL_EMOJIS = {
+        BTC: '🟠',
+        ETH: '🔷',
+        SOL: '🟣',
+        XRP: '⚪',
+        ADA: '🔵',
+        DOGE: '🐕',
+        DOT: '🔴',
+        MATIC: '💜',
+        LINK: '🔗',
+        AVAX: '🔺'
+    };
 
     useEffect(() => {
         loadAlerts();
@@ -14,7 +26,7 @@ export default function AlertList({ token, onEdit, refreshTrigger }) {
         try {
             setLoading(true);
             const data = await getAlerts(token);
-            setAlerts(data);
+            setAlerts(Array.isArray(data) ? data : []);
         } catch (err) {
             setError(err.message);
         } finally {
@@ -94,7 +106,9 @@ export default function AlertList({ token, onEdit, refreshTrigger }) {
                     className={`card alert-card ${alert.state}`}
                 >
                     <div className="flex items-center justify-between">
-                        <span className="alert-symbol">{alert.symbol}</span>
+                        <span className="alert-symbol">
+                            {SYMBOL_EMOJIS[alert.symbol] || '💰'} {alert.symbol}
+                        </span>
                         {getStateBadge(alert.state)}
                     </div>
 

@@ -19,9 +19,11 @@ function getPublicHeaders() {
 
 // Handle API response
 async function handleResponse(response) {
-    const data = await response.json();
+    const text = await response.text();
+    const data = text ? JSON.parse(text) : null;
     if (!response.ok) {
-        throw new Error(data.message || data.error || 'Request failed');
+        const message = data?.message || data?.error || 'Request failed';
+        throw new Error(message);
     }
     return data;
 }

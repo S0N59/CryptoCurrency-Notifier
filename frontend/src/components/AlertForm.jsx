@@ -4,6 +4,19 @@ import { getSymbols, getUsers } from '../api';
 export default function AlertForm({ token, onSubmit, onCancel, editingAlert, isTelegram }) {
     const [symbols, setSymbols] = useState([]);
     const [users, setUsers] = useState([]);
+    const DEFAULT_SYMBOLS = ['BTC', 'ETH', 'SOL', 'XRP', 'ADA', 'DOGE', 'DOT', 'MATIC', 'LINK', 'AVAX'];
+    const SYMBOL_EMOJIS = {
+        BTC: '🟠',
+        ETH: '🔷',
+        SOL: '🟣',
+        XRP: '⚪',
+        ADA: '🔵',
+        DOGE: '🐕',
+        DOT: '🔴',
+        MATIC: '💜',
+        LINK: '🔗',
+        AVAX: '🔺'
+    };
     const [formData, setFormData] = useState({
         symbol: 'BTC',
         percent_change: 5,
@@ -51,7 +64,18 @@ export default function AlertForm({ token, onSubmit, onCancel, editingAlert, isT
             const symbolsData = results[0];
             const usersData = results[1]; // Will be undefined if not fetched
 
-            setSymbols(symbolsData);
+            const normalizedSymbols = Array.isArray(symbolsData) && symbolsData.length > 0
+                ? symbolsData
+                : DEFAULT_SYMBOLS;
+
+            setSymbols(normalizedSymbols);
+
+            if (!editingAlert && normalizedSymbols.length > 0) {
+                setFormData(prev => ({
+                    ...prev,
+                    symbol: normalizedSymbols.includes(prev.symbol) ? prev.symbol : normalizedSymbols[0]
+                }));
+            }
             
             if (usersData) {
                 setUsers(usersData.filter(u => u.is_active));
@@ -129,7 +153,9 @@ export default function AlertForm({ token, onSubmit, onCancel, editingAlert, isT
                             required
                         >
                             {symbols.map(s => (
-                                <option key={s} value={s}>{s}</option>
+                                <option key={s} value={s}>
+                                    {SYMBOL_EMOJIS[s] || '💰'} {s}
+                                </option>
                             ))}
                         </select>
                     </div>
