@@ -168,30 +168,8 @@ async function handleStart(msg) {
     const username = msg.from.first_name || 'friend';
 
     await ensureUserRegistered(String(msg.from.id), msg.from.username);
-
-    const cryptoLine = SYMBOL_LIST.slice(0, 5).map(s => `${getEmoji(s)} ${s}`).join(' • ');
-
-    const text = `🎉 <b>Welcome, ${username}!</b>
-
-${cryptoLine}
-
-🔔 I'm your personal <b>crypto alert bot</b>.
-📈 Get notified when prices move.
-📊 Track multiple coins at once.
-
-✨ <b>Ready to get started?</b>`;
-
-    const keyboard = {
-        inline_keyboard: [
-            [{ text: '🚀 Create My First Alert', callback_data: 'menu:new' }],
-            [{ text: '📖 Show Menu', callback_data: 'menu:main' }]
-        ]
-    };
-
-    await bot.sendMessage(chatId, text, {
-        parse_mode: 'HTML',
-        reply_markup: keyboard
-    });
+    await bot.sendMessage(chatId, `👋 <b>Hi, ${username}!</b>\n\nChoose an option:`, { parse_mode: 'HTML' });
+    await showMainMenu(msg);
 }
 
 /**
@@ -252,6 +230,11 @@ async function handleCallbackQuery(query) {
 
     if (data.startsWith('confirm:')) {
         await handleConfirmAlert(query);
+        return;
+    }
+
+    if (data === 'noop') {
+        await bot.answerCallbackQuery(query.id);
         return;
     }
 
@@ -423,14 +406,14 @@ async function handleToggleAlert(query) {
 async function handleDeleteAlert(query) {
     const userId = String(query.from.id);
     const alertId = parseInt(query.data.split(':')[1], 10);
-    const alert = alertQueries.getById.get(alertId);
+    const alert = await alertQueries.getById.get(alertId);
 
     if (!alert || alert.telegram_user_id !== userId) {
         await bot.answerCallbackQuery(query.id, { text: '❌ Alert not found' });
         return;
     }
 
-    historyQueries.create.run({
+    await historyQueries.create.run({
         alert_id: alertId,
         event_type: 'DELETED',
         old_state: alert.state,
@@ -438,7 +421,7 @@ async function handleDeleteAlert(query) {
         metadata: JSON.stringify({ symbol: alert.symbol })
     });
 
-    alertQueries.delete.run(alertId);
+    await alertQueries.delete.run(alertId);
 
     await bot.answerCallbackQuery(query.id, { text: '🗑️ Deleted!' });
     await handleMyAlerts(query);
@@ -453,7 +436,7 @@ async function handleConfirmAlert(query) {
     const messageId = query.message.message_id;
     const alertId = parseInt(query.data.split(':')[1], 10);
 
-    const alert = alertQueries.getById.get(alertId);
+    const alert = await alertQueries.getById.get(alertId);
 
     if (!alert || alert.telegram_user_id !== userId) {
         await bot.answerCallbackQuery(query.id, { text: '❌ Alert not found' });
