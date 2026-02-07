@@ -1,6 +1,13 @@
 export default async function handler(req, res) {
     try {
-        // Dynamic import to catch initialization errors
+        const originalUrl = req.headers['x-vercel-original-url'] || req.headers['x-original-url'];
+        if (originalUrl) {
+            req.url = originalUrl;
+        }
+        if (!req.url.startsWith('/api')) {
+            req.url = `/api${req.url}`;
+        }
+
         const module = await import('../src/index.js');
         const app = module.default;
         return app(req, res);
