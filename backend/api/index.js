@@ -1,11 +1,21 @@
 export default async function handler(req, res) {
     try {
-        const originalUrl = req.headers['x-vercel-original-url'] || req.headers['x-original-url'];
-        if (originalUrl) {
-            req.url = originalUrl;
-        }
-        if (!req.url.startsWith('/api')) {
-            req.url = `/api${req.url}`;
+        const pathParam = req.query?.path;
+        if (pathParam) {
+            const normalized = Array.isArray(pathParam) ? pathParam.join('/') : String(pathParam);
+            req.url = `/api/${normalized}`;
+        } else {
+            const originalUrl = req.headers['x-vercel-original-url']
+                || req.headers['x-original-url']
+                || req.headers['x-matched-path']
+                || req.headers['x-forwarded-uri']
+                || req.headers['x-rewrite-url'];
+            if (originalUrl) {
+                req.url = originalUrl;
+            }
+            if (!req.url.startsWith('/api')) {
+                req.url = `/api${req.url}`;
+            }
         }
 
         const module = await import('../src/index.js');
