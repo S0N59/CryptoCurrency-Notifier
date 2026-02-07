@@ -47,6 +47,7 @@ This project uses a **Hybrid Free-Tier Architecture**:
 6.  **Environment Variables**:
     *   `DATABASE_URL`: Your Supabase connection string.
     *   `TELEGRAM_BOT_TOKEN`: Your Telegram Bot Token.
+    *   `WEB_APP_URL`: Your Firebase Frontend URL (e.g., `https://your-project.web.app`).
     *   `ADMIN_TOKEN`: A secure secret string (for frontend login).
     *   `CRON_SECRET`: "MySuperSecretCronPassword123" (or any random string). This allows cron-job.org to trigger alerts without full admin access.
     *   `TELEGRAM_POLLING`: `false`
