@@ -86,6 +86,26 @@ app.get('/api/auth-debug', (req, res) => {
     });
 });
 
+// Routing debug (public)
+app.get('/api/debug-routing', (req, res) => {
+    res.json({
+        url: req.url,
+        path: req.path,
+        method: req.method,
+        baseUrl: req.baseUrl,
+        originalUrl: req.originalUrl,
+        headers: {
+            host: req.headers.host,
+            'x-forwarded-proto': req.headers['x-forwarded-proto'],
+            'x-vercel-deployment-url': req.headers['x-vercel-deployment-url']
+        },
+        env: {
+            NODE_ENV: process.env.NODE_ENV,
+            VERCEL: process.env.VERCEL
+        }
+    });
+});
+
 // Database connection test (protected by admin token)
 app.get('/api/test-db', async (req, res) => {
     const authHeader = req.headers.authorization;
