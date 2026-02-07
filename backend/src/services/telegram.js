@@ -51,8 +51,20 @@ export function initializeTelegramBot() {
 
         if (!config.telegramPolling) {
              console.log('[Telegram] Polling disabled (Webhook mode or inactive)');
-             // If using webhook, we need to set it up here or in index.js
-             // For now, we just don't start polling.
+             const webhookUrl = process.env.TELEGRAM_WEBHOOK_URL
+                 || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}/api/telegram/webhook` : null);
+
+             if (webhookUrl) {
+                 bot.setWebHook(webhookUrl)
+                     .then(() => {
+                         console.log(`[Telegram] Webhook set: ${webhookUrl}`);
+                     })
+                     .catch((error) => {
+                         console.error('[Telegram] Failed to set webhook:', error?.message || error);
+                     });
+             } else {
+                 console.warn('[Telegram] Webhook URL not set (TELEGRAM_WEBHOOK_URL/VERCEL_URL missing).');
+             }
         }
 
         bot.onText(/\/start/, handleStart);
