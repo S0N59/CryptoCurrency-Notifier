@@ -64,7 +64,7 @@ app.use('/api', ensureInitialized);
 app.get(['/api/health', '/health'], (req, res) => {
     res.json({
         status: 'ok',
-        version: '1.0.1', 
+        version: '1.0.2',
         buildTimestamp: new Date().toISOString(),
         env: process.env.VERCEL ? 'vercel' : 'local',
         initialized: isInitialized,

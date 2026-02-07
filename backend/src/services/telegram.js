@@ -83,12 +83,16 @@ export function processUpdate(update) {
 }
 
 async function ensureUserRegistered(userId, username) {
-    const existing = await userQueries.getById.get(String(userId));
-    if (!existing) {
-        await userQueries.create.run({
-            telegram_id: String(userId),
-            username: username || null
-        });
+    try {
+        const existing = await userQueries.getById.get(String(userId));
+        if (!existing) {
+            await userQueries.create.run({
+                telegram_id: String(userId),
+                username: username || null
+            });
+        }
+    } catch (error) {
+        console.error('[Telegram] Failed to ensure user registration:', error.message);
     }
 }
 
@@ -103,7 +107,12 @@ async function showMainMenu(msg, editMessage = false) {
         await ensureUserRegistered(userId, msg.from.username);
     }
 
-    const alerts = await alertQueries.getByUser.all(userId);
+    let alerts = [];
+    try {
+        alerts = await alertQueries.getByUser.all(userId);
+    } catch (error) {
+        console.error('[Telegram] Failed to load alerts:', error.message);
+    }
     const activeCount = alerts.filter(a => a.enabled).length;
 
     const text = `🚀 <b>Crypto Alerts Dashboard</b> 📊
