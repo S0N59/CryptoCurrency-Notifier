@@ -37,6 +37,12 @@ app.use(cors({
     credentials: true
 }));
 app.use(express.json());
+app.use((req, res, next) => {
+    if (!req.path.startsWith('/api') && req.path !== '/') {
+        req.url = `/api${req.url}`;
+    }
+    next();
+});
 
 // Lazy initialization for Serverless
 let isInitialized = false;
@@ -64,7 +70,7 @@ app.use('/api', ensureInitialized);
 app.get(['/api/health', '/health'], (req, res) => {
     res.json({
         status: 'ok',
-        version: '1.0.2',
+        version: '1.0.4',
         buildTimestamp: new Date().toISOString(),
         env: process.env.VERCEL ? 'vercel' : 'local',
         initialized: isInitialized,
